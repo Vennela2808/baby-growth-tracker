@@ -1,88 +1,112 @@
 body{
-font-family: 'Poppins', sans-serif;
+font-family: 'Segoe UI', sans-serif;
 background:#f4f6fb;
 margin:0;
 }
 
+/* Navbar */
+
 .navbar{
 display:flex;
 justify-content:space-between;
-padding:18px 30px;
-background:linear-gradient(90deg,#8e7dff,#b18cff);
+align-items:center;
+padding:15px 30px;
+background:#7b6cff;
 color:white;
 }
 
-.navbar a{
-color:white;
-margin-left:20px;
-text-decoration:none;
-font-weight:500;
+.navbar h2{
+margin:0;
 }
+
+/* Page layout */
 
 .container{
-padding:30px;
-}
-
-.profile-card{
-background:white;
+max-width:900px;
+margin:auto;
 padding:25px;
-border-radius:15px;
-text-align:center;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-margin-bottom:25px;
 }
 
-.profile-card img{
-width:130px;
-height:130px;
-border-radius:50%;
-object-fit:cover;
-margin-bottom:10px;
-}
-
-.avatar{
-font-size:70px;
-}
-
-.stats{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:20px;
-}
+/* Card UI */
 
 .card{
 background:white;
-padding:25px;
-border-radius:15px;
-box-shadow:0 5px 15px rgba(0,0,0,0.1);
-text-align:center;
+padding:20px;
+border-radius:12px;
+margin-bottom:20px;
+box-shadow:0 4px 10px rgba(0,0,0,0.08);
 }
 
-table{
-width:100%;
-background:white;
-border-radius:10px;
-overflow:hidden;
-box-shadow:0 5px 10px rgba(0,0,0,0.1);
+.card h3{
+margin-top:0;
 }
 
-th{
-background:#ff7a5c;
-color:white;
-padding:12px;
+/* Form layout */
+
+form{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+margin-top:10px;
 }
 
-td{
-padding:12px;
-text-align:center;
-border-bottom:1px solid #eee;
+input,select{
+padding:10px;
+border-radius:6px;
+border:1px solid #ddd;
+font-size:14px;
 }
 
 button{
 background:#7b6cff;
 color:white;
 border:none;
-padding:8px 14px;
-border-radius:8px;
+padding:10px 18px;
+border-radius:6px;
 cursor:pointer;
+font-weight:500;
+}
+
+button:hover{
+background:#5f53d6;
+}
+
+/* Growth records */
+
+.record{
+background:#f9f9ff;
+padding:12px;
+border-radius:8px;
+margin-top:8px;
+display:flex;
+justify-content:space-between;
+font-size:14px;
+}
+
+/* Next vaccine */
+
+.next-vaccine-card{
+background:linear-gradient(135deg,#ff7a5c,#ffb199);
+color:white;
+padding:25px;
+border-radius:12px;
+margin-top:20px;
+text-align:center;
+box-shadow:0 6px 15px rgba(0,0,0,0.15);
+}
+
+.next-vaccine-card h1{
+font-size:42px;
+margin:10px 0;
+}
+
+.next-vaccine-card p{
+font-size:18px;
+margin:0;
+}
+
+/* baby selector */
+
+.baby-select{
+margin-bottom:15px;
 }
