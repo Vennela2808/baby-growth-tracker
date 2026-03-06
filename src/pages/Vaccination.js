@@ -1,27 +1,68 @@
-import { useState } from "react";
+import { useState,useEffect } from "react"
+import {
+LineChart,
+Line,
+XAxis,
+YAxis,
+CartesianGrid,
+Tooltip,
+ResponsiveContainer
+} from "recharts"
 
-function Vaccination(){
+function Growth(){
 
-const vaccines = [
+const [babies,setBabies] = useState([])
+const [activeBaby,setActiveBaby] = useState(null)
 
-{ name:"BCG", age:"Birth", done:true },
-{ name:"Hepatitis B", age:"Birth", done:true },
-{ name:"OPV", age:"6 weeks", done:false },
-{ name:"DPT", age:"10 weeks", done:false },
-{ name:"MMR", age:"9 months", done:false }
+const [weight,setWeight] = useState("")
+const [height,setHeight] = useState("")
 
-]
+useEffect(()=>{
 
-const [data,setData] = useState(vaccines)
+const saved = JSON.parse(localStorage.getItem("babies"))
+
+if(saved){
+setBabies(saved)
+setActiveBaby(saved[0])
+}
+
+},[])
 
 
-const toggleStatus=(index)=>{
+const addRecord=(e)=>{
 
-const updated = [...data]
+e.preventDefault()
 
-updated[index].done = !updated[index].done
+if(!activeBaby) return
 
-setData(updated)
+const newRecord={
+date:new Date().toLocaleDateString(),
+weight:Number(weight),
+height:Number(height)
+}
+
+const updated=babies.map(b=>{
+
+if(b.id===activeBaby.id){
+
+return{
+...b,
+growth:[...b.growth,newRecord]
+}
+
+}
+
+return b
+
+})
+
+setBabies(updated)
+setActiveBaby(updated.find(b=>b.id===activeBaby.id))
+
+localStorage.setItem("babies",JSON.stringify(updated))
+
+setWeight("")
+setHeight("")
 
 }
 
@@ -30,47 +71,114 @@ return(
 
 <div className="container">
 
-<h2>Vaccination Schedule</h2>
+<h2>📈 Growth Tracker</h2>
 
-<table>
 
-<thead>
+{babies.length>0 && (
 
-<tr>
-<th>Vaccine</th>
-<th>Age</th>
-<th>Status</th>
-</tr>
+<div className="card">
 
-</thead>
+<h3>Select Baby</h3>
 
-<tbody>
+<select
+value={activeBaby?.id}
+onChange={(e)=>{
 
-{data.map((v,i)=>(
+const b=babies.find(x=>x.id==e.target.value)
 
-<tr key={i}>
+setActiveBaby(b)
 
-<td>{v.name}</td>
+}}
+>
 
-<td>{v.age}</td>
+{babies.map(b=>(
+<option key={b.id} value={b.id}>
+{b.name}
+</option>
+))}
 
-<td>
+</select>
 
-<button onClick={()=>toggleStatus(i)}>
+</div>
 
-{v.done ? "Completed" : "Pending"}
+)}
 
-</button>
 
-</td>
+<div className="card">
 
-</tr>
+<h3>Add Growth Record</h3>
+
+<form onSubmit={addRecord}>
+
+<input
+type="number"
+placeholder="Weight (kg)"
+value={weight}
+onChange={(e)=>setWeight(e.target.value)}
+/>
+
+<input
+type="number"
+placeholder="Height (cm)"
+value={height}
+onChange={(e)=>setHeight(e.target.value)}
+/>
+
+<button>Add Record</button>
+
+</form>
+
+</div>
+
+
+{activeBaby && activeBaby.growth.length>0 && (
+
+<div className="card">
+
+<h3>Growth Chart</h3>
+
+<ResponsiveContainer width="100%" height={300}>
+
+<LineChart data={activeBaby.growth}>
+
+<CartesianGrid strokeDasharray="3 3" />
+
+<XAxis dataKey="date"/>
+
+<YAxis/>
+
+<Tooltip/>
+
+<Line type="monotone" dataKey="weight" stroke="#7b6cff"/>
+
+</LineChart>
+
+</ResponsiveContainer>
+
+</div>
+
+)}
+
+
+<div className="card">
+
+<h3>Growth History</h3>
+
+{activeBaby && activeBaby.growth.map((g,i)=>(
+
+<div key={i} className="record">
+
+<span>{g.date}</span>
+
+<span>{g.weight} kg</span>
+
+<span>{g.height} cm</span>
+
+</div>
 
 ))}
 
-</tbody>
-
-</table>
+</div>
 
 </div>
 
@@ -78,4 +186,4 @@ return(
 
 }
 
-export default Vaccination
+export default Growth
