@@ -1,130 +1,285 @@
 import { useState, useEffect } from "react";
-import { CircularProgressbar } from "react-circular-progressbar";
-import "react-circular-progressbar/dist/styles.css";
 
 function Dashboard() {
 
-const [image,setImage] = useState(null)
-const [dob,setDob] = useState("")
-const [age,setAge] = useState("")
+const [babies,setBabies] = useState([])
+const [activeBaby,setActiveBaby] = useState(null)
 
-const vaccinesTaken = 6
-const totalVaccines = 12
+const [name,setName] = useState("")
+const [dob,setDob] = useState("")
+const [photo,setPhoto] = useState("")
+
+const vaccineSchedule = [
+{ name:"BCG", days:0 },
+{ name:"OPV", days:42 },
+{ name:"DPT", days:70 },
+{ name:"MMR", days:270 }
+]
 
 useEffect(()=>{
 
-const savedImage = localStorage.getItem("babyImage")
-const savedDob = localStorage.getItem("babyDOB")
+const saved = JSON.parse(localStorage.getItem("babies"))
 
-if(savedImage) setImage(savedImage)
-if(savedDob){
-setDob(savedDob)
-calculateAge(savedDob)
+if(saved){
+setBabies(saved)
+setActiveBaby(saved[0])
 }
 
 },[])
 
+useEffect(()=>{
+localStorage.setItem("babies",JSON.stringify(babies))
+},[babies])
 
-const uploadImage=(e)=>{
+
+/* Upload Photo */
+
+const handlePhotoUpload=(e)=>{
 
 const file = e.target.files[0]
 
 if(file){
 
-const url = URL.createObjectURL(file)
+const reader = new FileReader()
 
-setImage(url)
+reader.onloadend=()=>{
+setPhoto(reader.result)
+}
 
-localStorage.setItem("babyImage",url)
+reader.readAsDataURL(file)
 
 }
 
 }
 
 
-const handleDOB=(e)=>{
+/* Add Baby */
 
-const date = e.target.value
+const addBaby=(e)=>{
 
-setDob(date)
+e.preventDefault()
 
-localStorage.setItem("babyDOB",date)
+if(!name || !dob) return
 
-calculateAge(date)
+const newBaby={
+id:Date.now(),
+name,
+dob,
+photo,
+growth:[]
+}
+
+const updated=[...babies,newBaby]
+
+setBabies(updated)
+setActiveBaby(newBaby)
+
+setName("")
+setDob("")
+setPhoto("")
 
 }
 
 
-const calculateAge=(date)=>{
+/* Age Calculator */
 
-const birth = new Date(date)
+const calculateAge=(dob)=>{
+
+const birth = new Date(dob)
 const today = new Date()
 
 let months = (today.getFullYear()-birth.getFullYear())*12
 months += today.getMonth()-birth.getMonth()
 
-setAge(months+" months")
+return months + " months"
 
 }
+
+
+/* Next Vaccine */
+
+const getNextVaccine=()=>{
+
+if(!activeBaby) return null
+
+const today = new Date()
+
+for(let v of vaccineSchedule){
+
+const due = new Date(activeBaby.dob)
+
+due.setDate(due.getDate()+v.days)
+
+if(due > today){
+
+const diff = Math.ceil((due - today)/(1000*60*60*24))
+
+return {name:v.name,days:diff}
+
+}
+
+}
+
+return null
+
+}
+
+const next = getNextVaccine()
+
+
+/* Vaccine Progress */
+
+const vaccinesTaken = activeBaby?.growth?.length || 0
+const totalVaccines = vaccineSchedule.length
+
+const progress = Math.min((vaccinesTaken/totalVaccines)*100,100)
 
 
 return(
 
 <div className="container">
 
-<div className="profile-card">
+<h2>👶 Baby Dashboard</h2>
 
-{image ?
-<img src={image} alt="baby"/> :
-<div className="avatar">👶</div>
-}
-
-<h2>Baby Profile</h2>
-
-<input type="file" onChange={uploadImage}/>
-
-<br/><br/>
-
-<label>Baby DOB</label>
-
-<input type="date" value={dob} onChange={handleDOB}/>
-
-<h3>Age: {age}</h3>
-
-</div>
-
-
-<div className="stats">
 
 <div className="card">
 
-<h3>Vaccination Progress</h3>
+<h3>Add Baby</h3>
 
-<CircularProgressbar
-value={(vaccinesTaken/totalVaccines)*100}
-text={`${vaccinesTaken}/${totalVaccines}`}
+<form onSubmit={addBaby}>
+
+<input
+placeholder="Baby Name"
+value={name}
+onChange={(e)=>setName(e.target.value)}
 />
 
+<input
+type="date"
+value={dob}
+onChange={(e)=>setDob(e.target.value)}
+/>
+
+<input
+type="file"
+accept="image/*"
+onChange={handlePhotoUpload}
+/>
+
+<button>Add Baby</button>
+
+</form>
+
 </div>
 
+
+{babies.length>0 && (
+
 <div className="card">
+
+<h3>Select Baby</h3>
+
+<select
+value={activeBaby?.id}
+onChange={(e)=>{
+
+const b = babies.find(x=>x.id == e.target.value)
+
+setActiveBaby(b)
+
+}}
+>
+
+{babies.map(b=>(
+<option key={b.id} value={b.id}>
+{b.name}
+</option>
+))}
+
+</select>
+
+</div>
+
+)}
+
+
+{activeBaby && (
+
+<div className="card">
+
+<h3>Baby Profile</h3>
+
+{activeBaby.photo ? (
+
+<img
+src={activeBaby.photo}
+alt="baby"
+style={{
+width:"120px",
+height:"120px",
+borderRadius:"50%",
+objectFit:"cover"
+}}
+/>
+
+):( <p>No photo uploaded</p> )}
+
+<h3>{activeBaby.name}</h3>
+
+<p>DOB: {activeBaby.dob}</p>
+
+<p>Age: {calculateAge(activeBaby.dob)}</p>
+
+</div>
+
+)}
+
+
+{activeBaby && (
+
+<div className="card">
+
+<h3>💉 Vaccine Progress</h3>
+
+<div
+style={{
+height:"20px",
+background:"#eee",
+borderRadius:"10px",
+overflow:"hidden"
+}}
+>
+
+<div
+style={{
+width:progress+"%",
+background:"#7b6cff",
+height:"100%"
+}}
+></div>
+
+</div>
+
+<p>{Math.round(progress)}% Completed</p>
+
+</div>
+
+)}
+
+
+{activeBaby && next && (
+
+<div className="next-vaccine-card">
 
 <h3>Next Vaccine</h3>
 
-<p>OPV</p>
-<p>Due in 10 days</p>
+<h1>{next.name}</h1>
+
+<p>Due in {next.days} days</p>
 
 </div>
 
-<div className="card">
-
-<h3>Latest Weight</h3>
-
-<p>8.4 kg</p>
-
-</div>
-
-</div>
+)}
 
 </div>
 
